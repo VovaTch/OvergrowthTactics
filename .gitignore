@@ -1,0 +1,17 @@
+# Unreal generated
+Binaries/
+Intermediate/
+Saved/
+DerivedDataCache/
+*.sln
+*.suo
+*.VC.db
+*.VC.opendb
+
+# Editor / tooling (machine-specific, regenerated)
+.vs/
+.vscode/
+.cache/
+.idea/
+compile_commands.json
+*.code-workspace

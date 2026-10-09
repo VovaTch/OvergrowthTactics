@@ -1,0 +1,43 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project
+
+UE 5.7 C++ project (single runtime module `OvergrowthTactics`) following Alex Quevillon's "Tactical Combat" YouTube series (turn-based grid tactics). The goal is to reimplement his Blueprint logic in C++ where practical; Blueprints in `Content/Blueprints/Core` subclass the C++ actors and supply assets (meshes, data tables, input actions).
+
+Current progress (episode 21, partially implemented), working style, and the planned move to UE 5.8 are tracked in `AGENTS.md` — update it there when status changes.
+
+**Learning project:** the user writes most code themselves to learn C++ and UE5. Explain, review, and point to APIs/files by default; write code only when asked.
+
+## Build
+
+Close the editor first (Live Coding blocks command-line builds):
+```
+"C:\Program Files\Epic Games\UE_5.7\Engine\Build\BatchFiles\Build.bat" OvergrowthTacticsEditor Win64 Development "-Project=C:\Users\PC\Documents\Unreal Projects\OvergrowthTactics\OvergrowthTactics.uproject" -WaitMutex
+```
+
+There are no automated tests; verification is done in the editor (startup map `Content/Maps/entry`).
+
+Formatting: `.clang-format` is LLVM style with 4-space indent. `compile_commands.json` at the root feeds clangd.
+
+## Architecture
+
+**Grid (`AGrid`)** owns the logical grid: `GridTileMap` (`TMap<FIntPoint, FTileData>`). It generates tiles per shape (Square / Triangle / Hexagon) in `RefreshGrid`, with per-shape index math in `GetGridIdx*`. When `bUseEnvironment` is set, each tile sphere-traces the custom `Ground` channel (`COLLISION_GROUND` = `ECC_GameTraceChannel1`, defined in `OvergrowthTactics.h`) to find its height and tile type (`AGridModifier` actors in the level mark obstacles). Shape-specific meshes/materials come from the `T_GridShapeData` data table (`FGridShapeData` rows, looked up via `GetGridShapeRow` in `GridUtils`).
+
+**Rendering chain:** `AGrid` -> `GridVisualPresenter` (a `UChildActorComponent` holding `AGridVisual`) -> spawned `AGridMeshInstance` -> one `UInstancedStaticMeshComponent`. `AGridMeshInstance` maps tile index to instance index and colors instances from the tile's `ETileState` list (None / Hovered / Selected) via per-instance custom data. Tile state changes go through `AGrid::AddStateToTile` / `RemoveStateFromTile`, which update `FTileData.States` and push visuals down this chain.
+
+**Player input and actions:**
+- `APlayerTbsPawn` handles the camera (spring arm, zoom/move/rotate via Enhanced Input). Its tuning values are `Config` properties read from `Config/DefaultGame.ini`.
+- `APlayerActions` finds the grid with `GetActorOfClass`, updates the hovered tile every tick, and routes left/right clicks to the currently selected `AAction` actors.
+- `AAction` (abstract, `BlueprintNativeEvent ExecuteAction(FIntPoint)`) is the extension point for grid actions. `APlayerActions::SetSelectedAction` destroys old action actors and spawns new ones from classes, then broadcasts `OnSelectedActionsChanged` (UI widgets such as `W_ActionButton` bind to it). Actions clean up their own tile state in `EndPlay`. New actions = new `AAction` subclass (e.g. `Action_SelectTile`, `Action_AddTile`).
+
+**Levels:** `entry` is the persistent map; `ALevelSelector` streams sublevels from `Content/Maps/Sublevels` (`square1`, `square2`, `lighting1`) by name, unloading the previous one.
+
+**Unset sentinel:** tile indices use `{-99999, -99999}` to mean "no tile" (hovered/selected).
+
+## Gotchas
+- Live Coding patches are discarded on editor restart. Any header change (new UPROPERTY/UFUNCTION/delegate/class) needs a full build with the editor closed, otherwise the editor crashes or loads a stale DLL and Blueprints referencing new C++ members turn red.
+- Don't save Blueprints/widgets that show "class not found" errors; rebuild C++ first.
+- `.uasset`/`.umap` files are binary; Blueprint and widget changes must be done by the user in the editor.
+- Logs: `Saved/Logs/OvergrowthTactics.log`, crashes: `Saved/Crashes/`.
