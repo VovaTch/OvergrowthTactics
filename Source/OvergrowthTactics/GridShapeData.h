@@ -9,6 +9,9 @@
 #include "GridShapeData.generated.h"
 // clang-format on
 
+class UMaterialInstance;
+class UStaticMesh;
+
 UENUM(BlueprintType)
 enum class EGridShape : uint8 {
     None UMETA(DisplayName = "None"),

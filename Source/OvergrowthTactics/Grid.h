@@ -22,6 +22,7 @@ class OVERGROWTHTACTICS_API AGrid : public AActor {
     virtual void OnConstruction(const FTransform &Transform) override;
     void AddGridTile(const FTileData &TileData);
     void RemoveGridTile(const FTileData &TileData);
+    TOptional<FTileData> GetTileDataFromIndex(const FIntPoint &Index);
 
   protected:
     // Called when the game starts or when spawned

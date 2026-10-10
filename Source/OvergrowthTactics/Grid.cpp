@@ -3,6 +3,7 @@
 #include "Grid.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Misc/Optional.h"
 #include "OvergrowthTactics/GridModifier.h"
 #include "OvergrowthTactics/GridShapeData.h"
 #include "OvergrowthTactics/GridUtils.h"
@@ -74,6 +75,72 @@ void AGrid::RefreshGrid() {
     }
 }
 
+TOptional<FTileData> AGrid::GetTileDataFromIndex(const FIntPoint &Index) {
+
+    FGridShapeData *Row = GetRowFromShape(GridShape);
+    if (!Row || !Row->FlatMesh)
+        return NullOpt;
+    FVector MeshBounds = Row->FlatMesh->GetBounds().BoxExtent * 2.f;
+
+    if (MeshBounds.X <= 0.f || MeshBounds.Y <= 0.f)
+        return NullOpt;
+
+    FVector InstanceScale = {TileSize.X / MeshBounds.X,
+                             TileSize.Y / MeshBounds.Y, 1.f};
+    FVector PlacementLocation;
+
+    switch (GridShape) {
+    case EGridShape::Square:
+        PlacementLocation = {
+            GridBottomLeft.X +
+                (static_cast<float>(Index.X) + 0.5f) * TileSize.X,
+            GridBottomLeft.Y +
+                (static_cast<float>(Index.Y) + 0.5f) * TileSize.Y,
+            GridBottomLeft.Z + 0.1};
+        break;
+    case EGridShape::Hexagon:
+        PlacementLocation = {
+            GridBottomLeft.X +
+                (static_cast<float>(Index.X) + 1.f / 3.f) * TileSize.X * 1.5 +
+                fmod(Index.Y, 2) * TileSize.X * 0.75,
+            GridBottomLeft.Y +
+                (static_cast<float>(Index.Y) + 1.f) * TileSize.Y * 0.5,
+            GridBottomLeft.Z + 0.1};
+    case EGridShape::Triangle:
+        PlacementLocation = {
+            GridBottomLeft.X +
+                (static_cast<float>(Index.X) + 0.5f) * TileSize.X,
+            GridBottomLeft.Y +
+                (static_cast<float>(Index.Y) + 1.f) * TileSize.Y * 0.5,
+            GridBottomLeft.Z + 0.1};
+    default:
+        return NullOpt;
+    }
+    ETileType Result = ETileType::Normal; // TODO: is it correct?
+
+    if (bUseEnvironment) {
+        FVector EndPlacement = PlacementLocation;
+        Result = TraceForGround(PlacementLocation, EndPlacement);
+        if (IsTileTypeWalkable(Result)) {
+            PlacementLocation = EndPlacement + 0.1;
+        } else {
+            return NullOpt;
+        }
+    }
+
+    FTransform Transform;
+    Transform.SetLocation(PlacementLocation);
+    Transform.SetRotation(FQuat::Identity);
+    Transform.SetScale3D(InstanceScale);
+
+    FTileData NewTile;
+    NewTile.Index = Index;
+    NewTile.Type = Result;
+    NewTile.Transform = Transform;
+
+    return NewTile;
+}
+
 void AGrid::UpdateGridBottomLeft() {
 
     float TotalGridSizeX;
@@ -140,37 +207,14 @@ void AGrid::GenerateGridSquare() {
 
     for (auto IdxY = 0; IdxY < TileCount.Y; IdxY++) {
         for (auto IdxX = 0; IdxX < TileCount.X; IdxX++) {
-            FVector PlacementLocation = {
-                GridBottomLeft.X +
-                    (static_cast<float>(IdxX) + 0.5f) * TileSize.X,
-                GridBottomLeft.Y +
-                    (static_cast<float>(IdxY) + 0.5f) * TileSize.Y,
-                GridBottomLeft.Z + 0.1};
 
-            ETileType Result = ETileType::Normal;
+            auto TileData = GetTileDataFromIndex({IdxX, IdxY});
 
-            if (bUseEnvironment) {
-                FVector EndPlacement;
-                Result = TraceForGround(PlacementLocation, EndPlacement);
-                if (IsTileTypeWalkable(Result)) {
-                    PlacementLocation = EndPlacement + FVector{0.0, 0.0, 0.1};
-                } else {
-                    continue;
-                }
+            if (TileData.IsSet()) {
+                AddGridTile(TileData.GetValue());
+            } else {
+                continue;
             }
-
-            FTransform Transform;
-            Transform.SetLocation(PlacementLocation);
-            Transform.SetRotation(FQuat::Identity);
-            Transform.SetScale3D(InstanceScale);
-
-            FTileData TileData;
-            TileData.Index = FIntPoint(IdxX, IdxY);
-            TileData.Type = Result;
-            TileData.Transform = Transform;
-
-            //
-            AddGridTile(TileData);
         }
     }
 }
@@ -179,9 +223,6 @@ void AGrid::GenerateGridHex() {
     FGridShapeData *Row = GetRowFromShape(GridShape);
     if (!Row || !Row->FlatMesh)
         return;
-
-    // First destroy the previous grid; I don't think I need very strong
-    // performance so it doesn't need to be iterative
 
     //
     FVector MeshBounds = Row->FlatMesh->GetBounds().BoxExtent * 2.f;
@@ -201,38 +242,14 @@ void AGrid::GenerateGridHex() {
     //
     for (auto IdxY = 0; IdxY < TileCount.Y; IdxY++) {
         for (auto IdxX = 0; IdxX < TileCount.X; IdxX++) {
-            FVector PlacementLocation = {
-                GridBottomLeft.X +
-                    (static_cast<float>(IdxX) + 1.f / 3.f) * TileSize.X * 1.5 +
-                    fmod(IdxY, 2) * TileSize.X * 0.75,
-                GridBottomLeft.Y +
-                    (static_cast<float>(IdxY) + 1.f) * TileSize.Y * 0.5,
-                GridBottomLeft.Z + 0.1};
 
-            ETileType Result = ETileType::Normal; // TODO: is it correct?
+            auto TileData = GetTileDataFromIndex({IdxX, IdxY});
 
-            if (bUseEnvironment) {
-                FVector EndPlacement = PlacementLocation;
-                Result = TraceForGround(PlacementLocation, EndPlacement);
-                if (IsTileTypeWalkable(Result)) {
-                    PlacementLocation = EndPlacement + 0.1;
-                } else {
-                    continue;
-                }
+            if (TileData.IsSet()) {
+                AddGridTile(TileData.GetValue());
+            } else {
+                continue;
             }
-
-            FTransform Transform;
-            Transform.SetLocation(PlacementLocation);
-            Transform.SetRotation(FQuat::Identity);
-            Transform.SetScale3D(InstanceScale);
-
-            FTileData NewTile;
-            NewTile.Index = FIntPoint(IdxX, IdxY);
-            NewTile.Type = Result;
-            NewTile.Transform = Transform;
-
-            // Register the new tile
-            AddGridTile(NewTile);
         }
     }
 }
@@ -261,41 +278,13 @@ void AGrid::GenerateGridTri() {
     for (auto IdxY = 0; IdxY < TileCount.Y; IdxY++) {
         for (auto IdxX = 0; IdxX < TileCount.X; IdxX++) {
 
-            FVector PlacementLocation = {
-                GridBottomLeft.X +
-                    (static_cast<float>(IdxX) + 0.5f) * TileSize.X,
-                GridBottomLeft.Y +
-                    (static_cast<float>(IdxY) + 1.f) * TileSize.Y * 0.5,
-                GridBottomLeft.Z + 0.1};
+            auto TileData = GetTileDataFromIndex({IdxX, IdxY});
 
-            ETileType Result = ETileType::Normal; // TODO: is it correct?
-
-            if (bUseEnvironment) {
-                FVector EndPlacement = PlacementLocation;
-                Result = TraceForGround(PlacementLocation, EndPlacement);
-                if (IsTileTypeWalkable(Result)) {
-                    PlacementLocation = EndPlacement + 0.1;
-                } else {
-                    continue;
-                }
+            if (TileData.IsSet()) {
+                AddGridTile(TileData.GetValue());
+            } else {
+                continue;
             }
-
-            FTransform Transform;
-            Transform.SetLocation(PlacementLocation);
-
-            if (fmod(IdxX + IdxY, 2) == 1)
-                Transform.SetRotation(FQuat(FRotator(0.f, 180.f, 0.f)));
-            else
-                Transform.SetRotation(FQuat::Identity);
-            Transform.SetScale3D(InstanceScale);
-
-            FTileData NewTile;
-            NewTile.Index = FIntPoint(IdxX, IdxY);
-            NewTile.Type = Result;
-            NewTile.Transform = Transform;
-
-            // Add the actual component
-            AddGridTile(NewTile);
         }
     }
 }

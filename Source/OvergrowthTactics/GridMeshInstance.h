@@ -10,6 +10,8 @@
 #include "GridMeshInstance.generated.h"
 // clang-format on
 
+class UInstancedStaticMeshComponent;
+
 UCLASS()
 class OVERGROWTHTACTICS_API AGridMeshInstance : public AActor {
     GENERATED_BODY()

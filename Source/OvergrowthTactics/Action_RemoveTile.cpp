@@ -1,22 +1,23 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Action_AddTile.h"
+#include "Action_RemoveTile.h"
+#include "OvergrowthTactics/Action.h"
 #include "PlayerActions.h"
 
-void AAction_AddTile::ExecuteAction_Implementation(FIntPoint GridIndex) {
+void AAction_RemoveTile::ExecuteAction_Implementation(FIntPoint GridIndex) {
     if (!PlayerActions)
         return;
     auto Grid = PlayerActions->GetGridPtr();
-    if (Grid->IsIndexValid(GridIndex)) {
+    if (!Grid->IsIndexValid(GridIndex)) {
         return;
     }
 
     auto TileData = Grid->GetTileDataFromIndex(GridIndex);
     if (TileData.IsSet()) {
-        Grid->AddGridTile(TileData.GetValue());
+        Grid->RemoveGridTile(TileData.GetValue());
     }
 }
 
-void AAction_AddTile::EndPlay(const EEndPlayReason::Type EndPlayReason) {
+void AAction_RemoveTile::EndPlay(const EEndPlayReason::Type EndPlayReason) {
     Super::EndPlay(EndPlayReason);
 }
