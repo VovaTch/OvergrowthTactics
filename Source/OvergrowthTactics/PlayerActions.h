@@ -84,6 +84,8 @@ class OVERGROWTHTACTICS_API APlayerActions : public AActor {
     // Callbacks
     void OnLeftClickPressed();
     void OnRightClickPressed();
+    void OnLeftClickReleased();
+    void OnRightClickReleased();
 
     // Events
     UPROPERTY(BlueprintAssignable, Category = "Actions")
@@ -92,4 +94,6 @@ class OVERGROWTHTACTICS_API APlayerActions : public AActor {
   private:
     FIntPoint HoveredTileIdx{-99999, -99999};
     FIntPoint SelectedTileIdx{-99999, -99999};
+    bool bLeftClickPressed = false;
+    bool bRightClickPressed = false;
 };

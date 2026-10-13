@@ -369,8 +369,10 @@ void AGrid::RemoveGridTile(const FTileData &TileData) {
     if (GridVisualPresenter) {
         auto VisualPresenter =
             Cast<AGridVisual>(GridVisualPresenter->GetChildActor());
+        FTileData EmptyTileData = TileData;
+        EmptyTileData.Type = ETileType::None;
         if (VisualPresenter)
-            VisualPresenter->UpdateTileVisuals(TileData);
+            VisualPresenter->UpdateTileVisuals(EmptyTileData);
     }
 }
 

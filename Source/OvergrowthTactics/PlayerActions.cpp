@@ -8,6 +8,7 @@
 #include "OvergrowthTactics/Action_SelectTile.h"
 #include "OvergrowthTactics/Grid.h"
 #include "OvergrowthTactics/GridShapeData.h"
+#include "Styling/StyleColors.h"
 
 // Sets default values
 APlayerActions::APlayerActions() {
@@ -41,12 +42,18 @@ void APlayerActions::BeginPlay() {
 
         if (UEnhancedInputComponent *EIComp =
                 Cast<UEnhancedInputComponent>(InputComponent)) {
-            if (LeftClickAction)
+            if (LeftClickAction) {
                 EIComp->BindAction(LeftClickAction, ETriggerEvent::Started,
                                    this, &APlayerActions::OnLeftClickPressed);
-            if (RightClickAction)
+                EIComp->BindAction(LeftClickAction, ETriggerEvent::Completed,
+                                   this, &APlayerActions::OnLeftClickReleased);
+            }
+            if (RightClickAction) {
                 EIComp->BindAction(RightClickAction, ETriggerEvent::Started,
                                    this, &APlayerActions::OnRightClickPressed);
+                EIComp->BindAction(RightClickAction, ETriggerEvent::Completed,
+                                   this, &APlayerActions::OnRightClickReleased);
+            }
         }
     }
 }
@@ -68,19 +75,31 @@ void APlayerActions::UpdateTileUnderCursor() {
         Grid->RemoveStateFromTile(ETileState::Hovered, HoveredTileIdx);
         Grid->AddStateToTile(ETileState::Hovered, CurrentTileIdx);
         HoveredTileIdx = CurrentTileIdx;
+        if (bLeftClickPressed && SelectedAction_LeftClick)
+            SelectedAction_LeftClick->ExecuteAction(HoveredTileIdx);
+        if (bRightClickPressed && SelectedAction_RightClick)
+            SelectedAction_RightClick->ExecuteAction(HoveredTileIdx);
     }
 }
 
 // Callbacks
 void APlayerActions::OnLeftClickPressed() {
-    if (SelectedAction_LeftClick)
+    if (SelectedAction_LeftClick) {
+        bLeftClickPressed = true;
         SelectedAction_LeftClick->ExecuteAction(HoveredTileIdx);
+    }
 }
 
 void APlayerActions::OnRightClickPressed() {
-    if (SelectedAction_RightClick)
+    if (SelectedAction_RightClick) {
+        bRightClickPressed = true;
         SelectedAction_RightClick->ExecuteAction(HoveredTileIdx);
+    }
 }
+
+void APlayerActions::OnLeftClickReleased() { bLeftClickPressed = false; }
+
+void APlayerActions::OnRightClickReleased() { bRightClickPressed = false; }
 
 void APlayerActions::SetSelectedAction(TSubclassOf<AAction> LeftActionClass,
                                        TSubclassOf<AAction> RightActionClass) {
