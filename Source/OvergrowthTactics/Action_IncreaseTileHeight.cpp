@@ -12,15 +12,16 @@ void AAction_IncreaseTileHeight::ExecuteAction_Implementation(
         return;
     }
 
-    auto TileData = Grid->GetTileDataFromIndex(GridIndex);
-    if (!TileData.IsSet())
+    FTileData TileData;
+    bool ExtractionSuccess;
+    Grid->GetTileData(GridIndex, TileData, ExtractionSuccess);
+    if (!ExtractionSuccess)
         return;
 
-    Grid->RemoveGridTile(TileData.GetValue());
-    TileData->Transform.SetLocation(TileData->Transform.GetLocation() +
-                                    FVector(0, 0, Grid->GetTileSize().Z));
+    TileData.Transform.SetLocation(TileData.Transform.GetLocation() +
+                                   FVector(0, 0, Grid->GetTileSize().Z));
 
-    Grid->AddGridTile(TileData.GetValue());
+    Grid->AddGridTile(TileData);
 }
 
 void AAction_IncreaseTileHeight::EndPlay(
