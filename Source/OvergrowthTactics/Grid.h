@@ -98,6 +98,8 @@ class OVERGROWTHTACTICS_API AGrid : public AActor {
     UFUNCTION(BlueprintCallable, Category = "Grid Interface")
     FVector GetTileScale();
 
+    const FVector GetTileSize() { return TileSize; }
+
   private:
     // UStaticMesh *SquareAsset;
     // UStaticMesh *HexAsset;

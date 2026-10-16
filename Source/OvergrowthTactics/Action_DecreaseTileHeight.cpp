@@ -17,10 +17,14 @@ void AAction_DecreaseTileHeight::ExecuteAction_Implementation(
     if (!TileData.IsSet())
         return;
 
+    Grid->RemoveGridTile(TileData.GetValue());
     TileData->Transform.SetLocation(TileData->Transform.GetLocation() +
-                                    FVector(0, 0, -Grid->GetTileScale().Z));
-    ;
+                                    FVector(0, 0, -Grid->GetTileSize().Z));
+
+    Grid->AddGridTile(TileData.GetValue());
 }
 
 void AAction_DecreaseTileHeight::EndPlay(
-    const EEndPlayReason::Type EndPlayReason) {}
+    const EEndPlayReason::Type EndPlayReason) {
+    Super::EndPlay(EndPlayReason);
+}

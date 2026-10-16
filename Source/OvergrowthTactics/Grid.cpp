@@ -106,6 +106,7 @@ TOptional<FTileData> AGrid::GetTileDataFromIndex(const FIntPoint &Index) {
             GridBottomLeft.Y +
                 (static_cast<float>(Index.Y) + 1.f) * TileSize.Y * 0.5,
             GridBottomLeft.Z + 0.1};
+        break;
     case EGridShape::Triangle:
         PlacementLocation = {
             GridBottomLeft.X +
@@ -113,6 +114,7 @@ TOptional<FTileData> AGrid::GetTileDataFromIndex(const FIntPoint &Index) {
             GridBottomLeft.Y +
                 (static_cast<float>(Index.Y) + 1.f) * TileSize.Y * 0.5,
             GridBottomLeft.Z + 0.1};
+        break;
     default:
         return NullOpt;
     }
