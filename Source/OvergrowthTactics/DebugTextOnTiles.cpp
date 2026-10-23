@@ -80,7 +80,7 @@ ADebugTextOnTiles::GetTextActor(const FIntPoint Index) {
         EHorizTextAligment::EHTA_Center);
     TextRenderComponent->SetVerticalAlignment(
         EVerticalTextAligment::EVRTA_TextCenter);
-    TextRenderComponent->SetWorldSize(Grid->GetTileSize().X / 2.5);
+    TextRenderComponent->SetWorldSize(Grid->GetTileSize().X * TextSizeFactor);
     TextRenderComponent->SetTextRenderColor(FColor::White);
 
     if (IsValid(NewTextActor)) {
@@ -148,7 +148,7 @@ void ADebugTextOnTiles::UpdateTextOnTile(const FIntPoint Index) {
         EHorizTextAligment::EHTA_Center);
     TextRenderComponent->SetVerticalAlignment(
         EVerticalTextAligment::EVRTA_TextCenter);
-    TextRenderComponent->SetWorldSize(Grid->GetTileSize().X / 2.5);
+    TextRenderComponent->SetWorldSize(Grid->GetTileSize().X * TextSizeFactor);
     TextRenderComponent->SetTextRenderColor(FColor::White);
 }
 
@@ -156,4 +156,9 @@ void ADebugTextOnTiles::UpdateStateOnAllTiles() {
     for (const auto &Kvp : Grid->GetGridTileMap()) {
         UpdateTextOnTile(Kvp.Key);
     }
+}
+
+void ADebugTextOnTiles::SetShowTileIndices(bool ShowTileIndices) {
+    bShowTileIndices = ShowTileIndices;
+    UpdateStateOnAllTiles();
 }

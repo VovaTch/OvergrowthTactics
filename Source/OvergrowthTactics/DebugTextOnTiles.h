@@ -23,6 +23,12 @@ class OVERGROWTHTACTICS_API ADebugTextOnTiles : public AActor {
     TObjectPtr<ATextRenderActor> GetTextActor(const FIntPoint Index);
     void DestroyTextActor(const FIntPoint Index);
 
+    UFUNCTION(BlueprintCallable)
+    void SetTextSizeFactor(float SizeFactor) { TextSizeFactor = SizeFactor; }
+
+    UFUNCTION(BlueprintCallable)
+    float GetTextSizeFactor() { return TextSizeFactor; }
+
   protected:
     // Called when the game starts or when spawned
     virtual void BeginPlay() override;
@@ -37,9 +43,7 @@ class OVERGROWTHTACTICS_API ADebugTextOnTiles : public AActor {
     bool bShowTileIndices = false;
 
     UFUNCTION(BlueprintCallable)
-    void SetShowTileIndices(bool ShowTileIndices) {
-        bShowTileIndices = ShowTileIndices;
-    }
+    void SetShowTileIndices(bool ShowTileIndices);
 
     UFUNCTION(BlueprintCallable)
     void ClearAllTextActors();
@@ -53,4 +57,7 @@ class OVERGROWTHTACTICS_API ADebugTextOnTiles : public AActor {
   public:
     // Called every frame
     virtual void Tick(float DeltaTime) override;
+
+  private:
+    float TextSizeFactor = 0.25f;
 };
