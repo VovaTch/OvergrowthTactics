@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Delegates/DelegateCombinations.h"
 #include "GameFramework/Actor.h"
 #include "OvergrowthTactics/GridShapeData.h"
 #include "OvergrowthTactics/GridVisual.h"
@@ -10,6 +11,11 @@
 // clang-format off
 #include "Grid.generated.h"
 // clang-format on
+
+// Callbacks
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTileDataUpdated, FIntPoint,
+                                            TileData);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGridDestroyed);
 
 UCLASS()
 class OVERGROWTHTACTICS_API AGrid : public AActor {
@@ -67,6 +73,13 @@ class OVERGROWTHTACTICS_API AGrid : public AActor {
     // Called every frame
     virtual void Tick(float DeltaTime) override;
 
+    // Callbacks
+    UPROPERTY(BlueprintAssignable, Category = "Grid Interface")
+    FOnTileDataUpdated OnTileDataUpdated;
+
+    UPROPERTY(BlueprintAssignable, Category = "Grid Interface")
+    FOnGridDestroyed OnGridDestroyed;
+
     // Function to refresh grid, callable from outside C++
     UFUNCTION(BlueprintCallable, Category = "Grid Logic")
     void RefreshGrid();
@@ -99,6 +112,7 @@ class OVERGROWTHTACTICS_API AGrid : public AActor {
     FVector GetTileScale();
 
     const FVector GetTileSize() { return TileSize; }
+    const TMap<FIntPoint, FTileData> GetGridTileMap() { return GridTileMap; }
 
   private:
     // UStaticMesh *SquareAsset;

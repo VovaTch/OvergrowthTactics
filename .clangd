@@ -1,7 +1,10 @@
 ---
 CompileFlags:
   CompilationDatabase: ./
-  # Add: [-Wno-unknown-pragmas, Wno-microsoft-enum-value]
+  Add: [-Wno-unknown-pragmas, -Wno-microsoft-enum-value, -Wno-invalid-constexpr]
 Index:
   Background: Build
   # Background: Skip
+Diagnostics:
+  Includes:
+    IgnoreHeader: [CoreMinimal\.h, .*\.generated\.h]

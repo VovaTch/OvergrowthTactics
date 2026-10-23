@@ -1,5 +1,14 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+// clang-format off
+#include "CollisionShape.h"
+#include "Engine/HitResult.h"
+#include "Materials/Materialinstance.h"
+#include "Engine/StaticMesh.h"
+#include "Engine/World.h"
+#include "GameFramework/PlayerController.h"
+// clang-format on
+
 #include "Grid.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -298,6 +307,8 @@ void AGrid::DestroyGrid() {
                 Cast<AGridVisual>(GridVisualPresenter->GetChildActor()))
             VisualPresenter->DestroyGridVisuals();
     }
+
+    OnGridDestroyed.Broadcast();
 }
 
 FGridShapeData *AGrid::GetRowFromShape(EGridShape Shape) {
@@ -362,6 +373,9 @@ void AGrid::AddGridTile(const FTileData &TileData) {
         if (VisualPresenter)
             VisualPresenter->UpdateTileVisuals(TileData);
     }
+
+    // Call callback
+    OnTileDataUpdated.Broadcast(TileData.Index);
 }
 
 void AGrid::RemoveGridTile(const FTileData &TileData) {
@@ -376,6 +390,9 @@ void AGrid::RemoveGridTile(const FTileData &TileData) {
         if (VisualPresenter)
             VisualPresenter->UpdateTileVisuals(EmptyTileData);
     }
+
+    // Call callback
+    OnTileDataUpdated.Broadcast(TileData.Index);
 }
 
 FVector AGrid::GetCursorLocationOnGrid(APlayerController *PlayerController) {
@@ -510,6 +527,9 @@ void AGrid::AddStateToTile(ETileState State, FIntPoint Index) {
         return;
     Tile->States.AddUnique(State);
     UpdateTileVisuals(*Tile);
+
+    // Call callback
+    OnTileDataUpdated.Broadcast(Index);
 }
 void AGrid::RemoveStateFromTile(ETileState State, FIntPoint Index) {
     auto Tile = GridTileMap.Find(Index);
@@ -519,6 +539,9 @@ void AGrid::RemoveStateFromTile(ETileState State, FIntPoint Index) {
         Tile->States.Remove(State);
         UpdateTileVisuals(*Tile);
     }
+
+    // Call callback
+    OnTileDataUpdated.Broadcast(Index);
 }
 
 void AGrid::UpdateTileVisuals(const FTileData &TileData) {
