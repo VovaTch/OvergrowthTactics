@@ -5,7 +5,8 @@ UE 5.8 C++ project following Alex Quevillon's "Tactical Combat" YouTube series (
 ## Progress
 - Episode 20 (Actions System) done: `AAction`, `AAction_SelectTile`, `APlayerActions::SetSelectedAction`, `OnSelectedActionsChanged` delegate, `W_ActionButton` widget.
 - Episode 21 (More Grid Actions) done: `AAction_AddTile`, `AAction_RemoveTile`, hold-to-drag for left/right click (`APlayerActions` re-executes the action when the hovered tile changes while a button is held), `AAction_IncreaseTileHeight` / `AAction_DecreaseTileHeight` (read the stored tile with `AGrid::GetTileData`, shift Z by `TileSize.Z`, write back with `AddGridTile`), `AAction_SelectTileType` (the user's own design, differs from the video; Blueprint actions in `Content/Blueprints/Debug/Actions`). Buttons live in `W_Tab_Grid`.
-- In progress: Episode 22.
+- Episode 22 (Adding Text On The Tiles) done: `ADebugTextOnTiles` (Blueprint child `BP_DebugTextOnTiles`, a child actor of `BP_DebugMenu`) keeps one `ATextRenderActor` per walkable tile showing its index, toggled by `bShowTileIndices` / `SetShowTileIndices`. It binds `UpdateTextOnTile` to `AGrid::OnTileDataUpdated` (broadcast from `AddGridTile` / `RemoveGridTile` / tile state changes) and `ClearAllTextActors` to `AGrid::OnGridDestroyed` (broadcast from `DestroyGrid`, so stale text is cleared when the grid shape changes). Both delegates are public.
+- Next: Episode 23.
 - Known loose ends:
   - `AGrid::GetTileDataFromIndex` uses an identity rotation for all tiles; alternating triangle tiles need a 180° yaw.
   - `AGrid::GetTileSize` should be `FVector GetTileSize() const`.

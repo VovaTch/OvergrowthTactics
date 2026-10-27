@@ -26,7 +26,7 @@ class OVERGROWTHTACTICS_API AGridMeshInstance : public AActor {
     void RemoveGridInst(FIntPoint Index);
     void ClearGridInst();
     void SetColorStates(FVector ColorNone, FVector ColorHovered,
-                        FVector ColorSelected);
+                        FVector ColorSelected, FVector ColorIsNeighbor);
     FVector GetColorFromStates(TArray<ETileState> States);
     float GetOpacityFromStates(TArray<ETileState> States);
     void UpdateGridInstColor(FIntPoint Index, const TArray<ETileState> &States);
@@ -46,11 +46,14 @@ class OVERGROWTHTACTICS_API AGridMeshInstance : public AActor {
     TMap<ETileState, FVector> ColorStates = {
         {ETileState::None, FVector(0.f, 0.f, 0.f)},
         {ETileState::Selected, FVector(1.f, 0.0f, 0.0f)},
-        {ETileState::Hovered, FVector(0.2f, 0.6f, 0.2f)}};
+        {ETileState::Hovered, FVector(0.2f, 0.6f, 0.2f)},
+        {ETileState::IsNeighbor, FVector(0.3f, 0.05f, 0.3f)}};
+    ;
 
     UPROPERTY()
     TMap<ETileState, float> OpacityStates = {{ETileState::None, 0.f},
                                              {ETileState::Selected, 0.85f},
+                                             {ETileState::IsNeighbor, 0.25f},
                                              {ETileState::Hovered, 0.3f}};
 
   public:

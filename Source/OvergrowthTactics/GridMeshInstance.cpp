@@ -73,15 +73,19 @@ void AGridMeshInstance::ClearGridInst() {
 }
 
 void AGridMeshInstance::SetColorStates(FVector ColorNone, FVector ColorHovered,
-                                       FVector ColorSelected) {
+                                       FVector ColorSelected,
+                                       FVector ColorIsNeighbor) {
     ColorStates[ETileState::None] = ColorNone;
     ColorStates[ETileState::Hovered] = ColorHovered;
     ColorStates[ETileState::Selected] = ColorSelected;
+    ColorStates[ETileState::IsNeighbor] = ColorIsNeighbor;
+    ;
 }
 
 FVector AGridMeshInstance::GetColorFromStates(TArray<ETileState> States) {
-    const TArray<ETileState> Heirarchy{ETileState::Selected,
-                                       ETileState::Hovered, ETileState::None};
+    const TArray<ETileState> Heirarchy{
+        ETileState::Selected, ETileState::Hovered, ETileState::IsNeighbor,
+        ETileState::None};
     for (auto TileState : Heirarchy) {
         if (States.Contains(TileState)) {
             if (auto Color = ColorStates.Find(TileState)) {
@@ -93,8 +97,9 @@ FVector AGridMeshInstance::GetColorFromStates(TArray<ETileState> States) {
 }
 
 float AGridMeshInstance::GetOpacityFromStates(TArray<ETileState> States) {
-    const TArray<ETileState> Heirarchy{ETileState::Selected,
-                                       ETileState::Hovered, ETileState::None};
+    const TArray<ETileState> Heirarchy{
+        ETileState::Selected, ETileState::Hovered, ETileState::IsNeighbor,
+        ETileState::None};
 
     for (auto TileState : Heirarchy) {
         if (States.Contains(TileState)) {

@@ -14,6 +14,8 @@
 // clang-format on
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSelectedActionsChanged);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoveredTileChanged, FIntPoint,
+                                            TileData);
 
 UCLASS()
 class OVERGROWTHTACTICS_API APlayerActions : public AActor {
@@ -90,6 +92,9 @@ class OVERGROWTHTACTICS_API APlayerActions : public AActor {
     // Events
     UPROPERTY(BlueprintAssignable, Category = "Actions")
     FOnSelectedActionsChanged OnSelectedActionsChanged;
+
+    UPROPERTY(BlueprintAssignable, Category = "Actions")
+    FOnHoveredTileChanged OnHoveredTileChanged;
 
   private:
     FIntPoint HoveredTileIdx{-99999, -99999};

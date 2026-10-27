@@ -12,6 +12,7 @@
 #include "Grid.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Math/MathFwd.h"
 #include "Misc/Optional.h"
 #include "OvergrowthTactics/GridModifier.h"
 #include "OvergrowthTactics/GridShapeData.h"
@@ -141,7 +142,11 @@ TOptional<FTileData> AGrid::GetTileDataFromIndex(const FIntPoint &Index) {
 
     FTransform Transform;
     Transform.SetLocation(PlacementLocation);
-    Transform.SetRotation(FQuat::Identity);
+    if (GridShape == EGridShape::Triangle && ((Index.X + Index.Y) & 1) == 0) {
+        Transform.SetRotation(FQuat(FRotator(0, 180, 0)));
+    } else {
+        Transform.SetRotation(FQuat::Identity);
+    }
     Transform.SetScale3D(InstanceScale);
 
     FTileData NewTile;
@@ -518,6 +523,44 @@ void AGrid::GetTileData(FIntPoint Index, FTileData &TileData, bool &Success) {
         TileData = *Tile;
         Success = true;
     }
+}
+
+TArray<FIntPoint> AGrid::GetNeighbors(FIntPoint Index) {
+
+    TArray<FIntPoint> Neighbors = {};
+    TArray<FIntPoint> OffsetCandidates = {};
+
+    switch (GridShape) {
+    case EGridShape::Square:
+        OffsetCandidates = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1},
+                            {0, 1},   {1, -1}, {1, 0},  {1, 1}};
+        break;
+    case EGridShape::Triangle:
+        OffsetCandidates = {{0, -1}, {0, 1}};
+        if (((Index.X + Index.Y) & 1) != 0) {
+            OffsetCandidates.Add({-1, 0});
+        } else {
+            OffsetCandidates.Add({1, 0});
+        }
+        break;
+    case EGridShape::Hexagon:
+        OffsetCandidates = {{0, -2}, {0, -1}, {0, 1}, {0, 2}};
+        if (Index.Y % 2 == 0) {
+            OffsetCandidates.Append({{-1, 1}, {-1, -1}});
+        } else {
+            OffsetCandidates.Append({{1, 1}, {1, -1}});
+        }
+        break;
+    case EGridShape::None:
+        break;
+    }
+
+    for (auto const Candidate : OffsetCandidates) {
+        if (IsIndexValid(Candidate + Index))
+            Neighbors.Add(Candidate + Index);
+    }
+
+    return Neighbors;
 }
 
 // ----------------- STATE HANDLERS ---------------

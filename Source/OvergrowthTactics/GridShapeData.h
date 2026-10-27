@@ -32,6 +32,7 @@ enum class ETileState : uint8 {
     None UMETA(DisplayName = "none"),
     Hovered UMETA(DisplayName = "hovered"),
     Selected UMETA(DisplayName = "selected"),
+    IsNeighbor UMETA(DisplayName = "is_neighbor")
 };
 
 FORCEINLINE static bool IsTileTypeWalkable(ETileType Type) {

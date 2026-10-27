@@ -75,6 +75,7 @@ void APlayerActions::UpdateTileUnderCursor() {
         Grid->RemoveStateFromTile(ETileState::Hovered, HoveredTileIdx);
         Grid->AddStateToTile(ETileState::Hovered, CurrentTileIdx);
         HoveredTileIdx = CurrentTileIdx;
+        OnHoveredTileChanged.Broadcast(HoveredTileIdx);
         if (bLeftClickPressed && SelectedAction_LeftClick)
             SelectedAction_LeftClick->ExecuteAction(HoveredTileIdx);
         if (bRightClickPressed && SelectedAction_RightClick)

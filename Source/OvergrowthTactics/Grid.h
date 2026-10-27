@@ -111,8 +111,11 @@ class OVERGROWTHTACTICS_API AGrid : public AActor {
     UFUNCTION(BlueprintCallable, Category = "Grid Interface")
     FVector GetTileScale();
 
-    const FVector GetTileSize() { return TileSize; }
+    FVector GetTileSize() const { return TileSize; }
     const TMap<FIntPoint, FTileData> GetGridTileMap() { return GridTileMap; }
+
+    // Grid Shape computations
+    TArray<FIntPoint> GetNeighbors(FIntPoint Index);
 
   private:
     // UStaticMesh *SquareAsset;
