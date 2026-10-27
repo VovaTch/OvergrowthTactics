@@ -57,6 +57,9 @@ class OVERGROWTHTACTICS_API AGrid : public AActor {
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid Properties")
     bool bUseEnvironment = true;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid Properties")
+    bool bUseDiagonalNeighbors = true;
+
     // Read only data table TODO: remove?
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Data")
     TObjectPtr<UDataTable> GridShapeData;

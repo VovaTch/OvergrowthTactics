@@ -532,15 +532,29 @@ TArray<FIntPoint> AGrid::GetNeighbors(FIntPoint Index) {
 
     switch (GridShape) {
     case EGridShape::Square:
-        OffsetCandidates = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1},
-                            {0, 1},   {1, -1}, {1, 0},  {1, 1}};
+        OffsetCandidates = {
+            {-1, 0},
+            {0, -1},
+            {0, 1},
+            {1, 0},
+        };
+        if (bUseDiagonalNeighbors) {
+
+            OffsetCandidates.Append({{-1, -1}, {-1, 1}, {1, -1}, {1, 1}});
+        }
         break;
     case EGridShape::Triangle:
         OffsetCandidates = {{0, -1}, {0, 1}};
         if (((Index.X + Index.Y) & 1) != 0) {
             OffsetCandidates.Add({-1, 0});
+            if (bUseDiagonalNeighbors) {
+                OffsetCandidates.Append({{-1, -2}, {-1, 2}, {1, 0}});
+            }
         } else {
             OffsetCandidates.Add({1, 0});
+            if (bUseDiagonalNeighbors) {
+                OffsetCandidates.Append({{1, -2}, {1, 2}, {-1, 0}});
+            }
         }
         break;
     case EGridShape::Hexagon:
@@ -555,9 +569,25 @@ TArray<FIntPoint> AGrid::GetNeighbors(FIntPoint Index) {
         break;
     }
 
+    FTileData OriginTileData;
+    bool bExtractionSuccess;
+    GetTileData(Index, OriginTileData, bExtractionSuccess);
+    if (!bExtractionSuccess)
+        return Neighbors;
+    auto OriginHeight = OriginTileData.Transform.GetLocation().Z;
+
     for (auto const Candidate : OffsetCandidates) {
-        if (IsIndexValid(Candidate + Index))
-            Neighbors.Add(Candidate + Index);
+        if (IsIndexValid(Candidate + Index)) {
+            FTileData CandidateTileData;
+            GetTileData(Candidate + Index, CandidateTileData,
+                        bExtractionSuccess);
+            if (!bExtractionSuccess)
+                continue;
+
+            auto CandidateHeight = CandidateTileData.Transform.GetLocation().Z;
+            if (abs(OriginHeight - CandidateHeight) <= TileSize.Z)
+                Neighbors.Add(Candidate + Index);
+        }
     }
 
     return Neighbors;
